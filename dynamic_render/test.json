@@ -1,0 +1,36 @@
+{
+    "scene": "static_scenes/dining-room/scene.xml",
+    "animation": "static_scenes/dining-room/animation.json",
+    "v": [0.7, 0.4, 0.6, 0.7, 0.2, 0.8, 0.50],
+    "output": "dining-room-dynamic",
+    "train": {
+        "use_adaptive_surface": true,
+        "adaptive_surface_interval": 2000,
+        "adaptive_surface_alpha": 0.5,
+        "use_adaptive_rhs": true,
+        "loss": "weighted_normed_semi_l2_loss",
+        "rhs_samples": 32,
+        "batch_size": 16384,
+        "steps": 200000,
+        "learning_rate": 0.001,
+        "save_interval": 500,
+        "model_name": "test.pth"
+    },
+    "model": {
+        "type": "DynamicModel",
+
+        "encoding": "vertex",
+        "feature_dim": 8,
+
+        "grid_type_2d": "HashGrid",
+        "n_levels_2d": 4,
+        "n_features_per_level_2d": 2,
+        "base_resolution_2d": 32,
+        "per_level_scale_2d": 2.0,
+
+        "vvmlp_output_dims": 128,
+        
+        "n_hidden_layers": 4,
+        "n_neurons": 256
+    }
+}

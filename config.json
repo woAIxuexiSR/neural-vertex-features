@@ -1,0 +1,25 @@
+{
+    "scene": "static_scenes/dining-room/scene.xml",
+    "output": "dining-room",
+    "train": {
+        "use_subdivide": false,
+        "subdivide_surface_interval": 5001,
+        "use_adaptive_surface": true,
+        "adaptive_surface_interval": 2000,
+        "adaptive_surface_alpha": 0.5,
+        "use_adaptive_rhs": true,
+        "loss": "weighted_normed_semi_l2",
+        "rhs_samples": 32,
+        "batch_size": 16384,
+        "steps": 40000,
+        "learning_rate": 0.0005,
+        "save_interval": 2000,
+        "model_name": "vertex_subrand.pth"
+    },
+    "model": {
+        "type": "VModel",
+        "feature_dim": 4,
+        "n_hidden_layers": 4,
+        "n_neurons": 256
+    }
+}
