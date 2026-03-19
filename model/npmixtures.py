@@ -5,7 +5,8 @@ import torch.nn as nn
 import tinycudann as tcnn
 import numpy as np
 
-from encoding.hash_grid import TCNNGrid
+from encoding.hash_grid import HashGrid
+from encoding.vertex_feature import VertexFeature
 
 mi.set_variant("cuda_rgb")
 
@@ -39,31 +40,38 @@ network_config = {
 }
 
 class NPMixtures(nn.Module):
-    def __init__(self, scene, config: dict):
+    def __init__(self, dscene, config: dict):
         super().__init__()
 
-        self.bb_min = scene.bbox().min.torch().cuda()
-        self.bb_max = scene.bbox().max.torch().cuda()
+        self.bb_min = dscene.scene.bbox().min.torch().cuda()
+        self.bb_max = dscene.scene.bbox().max.torch().cuda()
 
         self.n_mixtures = config["n_mixtures"]
         self.n_hidden_layers = config["n_hidden_layers"]
         self.n_neurons = config["n_neurons"]
-        self.n_output_dims = self.n_mixtures * 4
 
-        self.grid = TCNNGrid(
-            input_dim=3,
-            num_levels=config["num_levels"],
-            level_dim=config["level_dim"],
-            per_level_scale=config["per_level_scale"],
-            base_resolution=config["base_resolution"],
-            log2_hashmap_size=config["log2_hashmap_size"],
-        )
+        if self.encoding_type == "hash_grid":
+            self.spatial_encoding = HashGrid(
+                input_dim=3,
+                num_levels=config["n_levels"],
+                level_dim=config["feature_dim"],
+                per_level_scale=config["per_level_scale"],
+                base_resolution=config["base_resolution"],
+                log2_hashmap_size=config["log2_hashmap_size"]
+            )
+            self.encoding_dim = self.spatial_encoding.output_dim
+        elif self.encoding_type == "vertex":
+            self.spatial_encoding = VertexFeature(
+                dscene.scene,
+                config["feature_dim"]
+            )
+            self.encoding_dim = config["feature_dim"]
 
         # encoding
         self.encoding = tcnn.Encoding(3 + 3 + 3, encoding_config)
         
         # mlp
-        self.n_input_dims = self.grid.output_dim + self.encoding.n_output_dims
+        self.n_input_dims = self.feature_dim + self.encoding.n_output_dims
         layers = []
         for i in range(self.n_hidden_layers):
             layers.append(nn.Linear(self.n_neurons, self.n_neurons))
@@ -78,8 +86,7 @@ class NPMixtures(nn.Module):
     def forward(self, si, vars: np.ndarray):
 
         with dr.suspend_grad():
-            pos = ((si.p - self.bb_min) / (self.bb_max - self.bb_min)).torch()
-
+            pos = si.p
             dirs = si.to_world(si.wi)
             normals = si.sh_frame.n
             # upside = (dr.dot(dirs, normals) < 0).torch().to(torch.bool)
@@ -98,7 +105,12 @@ class NPMixtures(nn.Module):
             wi = (nn.functional.normalize(wi, dim=1) + 1) * 0.5
             n = (nn.functional.normalize(n, dim=1) + 1) * 0.5
 
-        x = self.grid(pos).to(torch.float32)
+        if self.encoding_type == "hash_grid":
+            pos = ((pos - self.bb_min) / (self.bb_max - self.bb_min)).torch()
+            x = self.spatial_encoding(pos)
+        elif self.encoding_type == "vertex":
+            x = self.spatial_encoding(si)
+
         e = self.encoding(torch.cat([wi, n, f_d], dim=1)).to(torch.float32)
         x = torch.cat([x, e], dim=1)
         x = self.mlp(x)

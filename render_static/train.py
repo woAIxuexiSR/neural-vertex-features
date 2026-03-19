@@ -107,9 +107,6 @@ def train(dscene, model, config, out_dir):
         l_sampler.seed(step, batch_size)
         r_sampler.seed(step, batch_size * M)
 
-        # shape_idx, sample_pdf, si_lhs = sample_si(
-        #     scene, sample_weight, l_sampler.next_1d(), l_sampler.next_2d(), l_sampler.next_2d()
-        # )
         face_idx, sample_pdf, si_lhs = model.spatial_encoding.sample_si(
             l_sampler.next_1d(), l_sampler.next_2d(), l_sampler.next_2d()
         )
@@ -197,8 +194,6 @@ def train(dscene, model, config, out_dir):
                 batch_surface_loss = np.zeros_like(sample_weight)
 
         if step % save_interval == save_interval - 1: 
-            # or step in [10, 20, 30, 40, 50, 100, 200, 500, 2000, 5000]:
-        # if step in [1, 10, 20, 50, 100, 200, 500, 2000, 5000, 10000, 20000, 30000, 40000, 50000, 59998]:
             writer.add_scalar("loss", batch_loss / save_interval, step)
             batch_loss = 0
             checkpoint = {
@@ -206,7 +201,6 @@ def train(dscene, model, config, out_dir):
                 "k": model.spatial_encoding.subdivide_level
             }
             torch.save(checkpoint, out_dir + "/" + config["model_name"])
-            # torch.save(model.state_dict(), out_dir + "/" + config["model_name"])
             name = config["model_name"].split(".")[0]
             render_img(scene, model, out_dir + "/{}_{}.exr".format(name, step))
 
