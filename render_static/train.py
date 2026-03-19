@@ -11,7 +11,6 @@ import argparse
 import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
-import tinycudann as tcnn
 from torch_scatter import scatter
 
 from integrators.lhs_rhs import *
@@ -164,14 +163,14 @@ def train(dscene, model, config, out_dir):
                 new_level = np.maximum(new_level, 0)
                 model.spatial_encoding.update(torch.from_numpy(new_level).cuda())
 
-                name = config["model_name"].split(".")[0]
-                render_error(scene, model, out_dir + "/{}_mean_{}.exr".format(name, step), subdivide_surface_loss)
-                render_error(scene, model, out_dir + "/{}_var_{}.exr".format(name, step), subdivide_surface_var)
-                render_error(scene, model, out_dir + "/{}_error_{}.exr".format(name, step), value)
-                test = np.zeros_like(value, dtype=np.int32)
-                test[mask] = 1
-                render_level(scene, model, out_dir + "/{}_mask_{}.exr".format(name, step), test)
-                render_level(scene, model, out_dir + "/{}_level_{}.exr".format(name, step), new_level)
+                # name = config["model_name"].split(".")[0]
+                # render_error(scene, model, out_dir + "/{}_mean_{}.exr".format(name, step), subdivide_surface_loss)
+                # render_error(scene, model, out_dir + "/{}_var_{}.exr".format(name, step), subdivide_surface_var)
+                # render_error(scene, model, out_dir + "/{}_error_{}.exr".format(name, step), value)
+                # test = np.zeros_like(value, dtype=np.int32)
+                # test[mask] = 1
+                # render_level(scene, model, out_dir + "/{}_mask_{}.exr".format(name, step), test)
+                # render_level(scene, model, out_dir + "/{}_level_{}.exr".format(name, step), new_level)
                 
                 subdivide_surface_loss = np.zeros(fcnt, dtype=np.float32)
                 subdivide_surface_var = np.zeros(fcnt, dtype=np.float32)

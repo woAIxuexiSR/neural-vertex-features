@@ -11,7 +11,6 @@ import argparse
 import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
-import tinycudann as tcnn
 from torch_scatter import scatter
 
 from integrators.lhs_rhs import *
@@ -43,11 +42,11 @@ def train(dscene, model, config, out_dir, cv):
     lr = config["learning_rate"]
     save_interval = config["save_interval"]
 
-    subdivide_start = 5000
-    subdivide_interval = 10000
-    subdivide_end = 30000
-    rhs_update_interval = 34000
-    lr_update_interval = 60000
+    subdivide_start = steps // 40
+    subdivide_interval = steps // 20
+    subdivide_end = steps * 3 // 20
+    rhs_update_interval = steps // 6
+    lr_update_interval = steps // 3
 
     indices = dr.arange(mi.UInt, 0, batch_size)
     indices = dr.repeat(indices, M)
@@ -86,9 +85,6 @@ def train(dscene, model, config, out_dir, cv):
         l_sampler.seed(step, batch_size)
         r_sampler.seed(step, batch_size * M)
 
-        # shape_idx, sample_pdf, si_lhs = sample_si(
-        #     scene, sample_weight, l_sampler.next_1d(), l_sampler.next_2d(), l_sampler.next_2d()
-        # )
         face_idx, sample_pdf, si_lhs = model.spatial_encoding.sample_si(
             l_sampler.next_1d(), l_sampler.next_2d(), l_sampler.next_2d()
         )
@@ -150,7 +146,6 @@ def train(dscene, model, config, out_dir, cv):
                 subdivide_surface_var = np.zeros(fcnt, dtype=np.float32)
 
                 optimizer = torch.optim.Adam(model.parameters(), lr=current_lr)
-                # step_LR = torch.optim.lr_scheduler.StepLR(optimizer, steps // 3, 0.33)
 
         if step % save_interval == save_interval - 1:
             writer.add_scalar("loss", batch_loss / save_interval, step)

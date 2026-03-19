@@ -38,9 +38,6 @@ if __name__ == "__main__":
         # prepare model
         
         model = get_model(config["model"]["type"], args.m, dscene, config["model"])
-        
-        # levels = torch.randint(0, 15, (model.spatial_encoding.fcnt,)).cuda()
-        # model.spatial_encoding.subdivide_level = levels
 
         if args.t == "LHS":
             integrator = LHSIntegrator(model)
@@ -48,9 +45,6 @@ if __name__ == "__main__":
             integrator = RHSIntegrator(model)
         elif args.t == "level":
             integrator = LevelIntegrator(model, model.spatial_encoding.subdivide_level)
-        elif args.t == "error":
-            errors = torch.randn(model.spatial_encoding.fcnt).abs() * 0.05 + 0.01 
-            integrator = ErrorIntegrator(model, errors)
             
     else:
         raise NotImplementedError

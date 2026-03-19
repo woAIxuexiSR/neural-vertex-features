@@ -16,7 +16,7 @@ mi.set_variant("cuda_rgb")
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Static Neural Radiosity")
+    parser = argparse.ArgumentParser(description="Dynamic Neural Radiosity")
     parser.add_argument("-t", type=str, default="path")
     parser.add_argument("-s", type=int, default=1)
     parser.add_argument("-c", type=str, default="config.json")
@@ -73,15 +73,8 @@ if __name__ == "__main__":
     spp = args.s if iter_num == 1 else max_spp_per_iter
     
     for i in range(iter_num):
-    # for i in range(20):
-        # start = time.time()
         img += mi.render(dscene.scene, integrator=integrator, spp=spp, seed=i + 2)
-        # dr.flush_malloc_cache()
-
-        # torch.cuda.synchronize()
-        # end = time.time()
-        
-        # print(f"{1000 * (end - start):.2f} ms")
+        dr.flush_malloc_cache()
         
     img = img / iter_num
     
