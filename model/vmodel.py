@@ -11,7 +11,6 @@ from encoding.hash_grid import HashGrid, TCNNGrid
 from encoding.compact_hash import CompactHash
 from encoding.vertex_feature import VertexFeature
 from encoding.kplanes import KPlanes
-from encoding.new_vertex_feature import NewVertexFeature
 
 mi.set_variant("cuda_rgb")
 
@@ -52,7 +51,7 @@ class VModel(nn.Module):
         self.bb_min = dscene.scene.bbox().min
         self.bb_max = dscene.scene.bbox().max
 
-        self.spatial_encoding = NewVertexFeature(dscene.scene, config["feature_dim"])
+        self.spatial_encoding = VertexFeature(dscene.scene, config["feature_dim"])
         self.encoding_dim = config["feature_dim"]
 
         # encoding

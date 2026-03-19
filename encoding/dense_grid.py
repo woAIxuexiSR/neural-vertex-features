@@ -47,14 +47,14 @@ class DenseGrid(nn.Module):
         n_neigs = 1 << input_dim
         neigs = np.arange(n_neigs, dtype=np.int64).reshape((-1, 1))
         dims = np.arange(input_dim, dtype=np.int64).reshape((1, -1))
-        bin_mask = torch.tensor(neigs & (1 << dims) == 0, dtype=bool)
+        bin_mask = torch.tensor((neigs & (1 << dims)) == 0, dtype=bool)
         self.register_buffer('bin_mask', bin_mask)
 
     def dense_idx(self, ind, res):
         d = ind.shape[-1]
         idx = torch.zeros_like(ind[..., 0])
         for i in range(d):
-            idx += ind[..., i] * (res ** i)
+            idx += ind[..., i] * ((res + 1) ** i)
         return idx
 
     def forward(self, inputs):

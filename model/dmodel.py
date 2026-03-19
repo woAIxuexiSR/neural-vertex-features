@@ -8,7 +8,6 @@ import time
 
 from encoding.hash_grid import HashGrid
 from encoding.vertex_feature import VertexFeature
-from encoding.new_vertex_feature import NewVertexFeature
 
 mi.set_variant("cuda_rgb")
 import time
@@ -97,7 +96,7 @@ class DModel(nn.Module):
         self.bb_max = dscene.scene.bbox().max
         self.var_num = dscene.var_num
 
-        self.spatial_encoding = NewVertexFeature(dscene.scene, config["feature_dim"])
+        self.spatial_encoding = VertexFeature(dscene.scene, config["feature_dim"])
         self.encoding_dim = config["feature_dim"]
 
         encoding_config = {"otype": "Composite", "nested": []}

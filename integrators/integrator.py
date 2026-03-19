@@ -5,7 +5,6 @@ import time
 import matplotlib.pyplot as plt
 
 from integrators.lhs_rhs import *
-from dscene.sample import valid_shape
 
 mi.set_variant("cuda_rgb")
 
@@ -31,20 +30,14 @@ class LHSIntegrator(mi.SamplingIntegrator):
         with torch.no_grad():
 
             ray = mi.Ray3f(ray)
-            # si = scene.ray_intersect(ray, active)
 
-            # si, throughput, null_face = first_smooth(scene, si, sampler)
             si, throughput, null_face, _ = first_smooth(scene, sampler, ray, active)
             dr.sync_device()
             L, _, _, valid = render_lhs(scene, self.v, si, self.model)
 
         torch.cuda.synchronize()
-        # torch.cuda.empty_cache()
 
         return L * throughput, valid & ~null_face, []
-
-
-mi.register_integrator("lhs", lambda props: LHSIntegrator(props))
 
 
 class RHSIntegrator(mi.SamplingIntegrator):
@@ -68,20 +61,14 @@ class RHSIntegrator(mi.SamplingIntegrator):
         with torch.no_grad():
 
             ray = mi.Ray3f(ray)
-            # si = scene.ray_intersect(ray, active)
-            
-            # si, throughput, null_face = first_smooth(scene, si, sampler)
+
             si, throughput, null_face, _ = first_smooth(scene, sampler, ray, active)
             dr.sync_device()
             L, _, _, _, valid = render_rhs(scene, self.v, sampler, si, self.model)
 
         torch.cuda.synchronize()
-        # torch.cuda.empty_cache()
 
         return L * throughput, valid & ~null_face, []
-
-
-mi.register_integrator("rhs", lambda props: RHSIntegrator(props))
 
 
 class PTIntegrator(mi.SamplingIntegrator):
@@ -104,9 +91,6 @@ class PTIntegrator(mi.SamplingIntegrator):
         L, valid = render_pt(scene, sampler, si)
         
         return L, valid, []
-
-
-mi.register_integrator("pt", lambda props: PTIntegrator(props))
 
 
 class ErrorIntegrator(mi.SamplingIntegrator):
@@ -160,9 +144,6 @@ class ErrorIntegrator(mi.SamplingIntegrator):
         return result, valid, []
 
 
-mi.register_integrator("lhs", lambda props: ErrorIntegrator(props))
-
-
 class LevelIntegrator(mi.SamplingIntegrator):
 
     def __init__(self, model, level):
@@ -193,20 +174,13 @@ class LevelIntegrator(mi.SamplingIntegrator):
             face_idx[face_idx >= self.model.fcnt] = 0
             levels = self.level[face_idx]
 
-            # max_level = self.level.max()
             max_level = 40
             level = (levels / max_level).cpu()
 
-        # colors = self.cmap(level)[:, :3]
-        # colors = torch.stack([
-        #     level,
-        #     torch.zeros_like(level),
-        #     torch.zeros_like(level)
-        # ], dim=1).numpy()
         colors = torch.stack([
-            torch.ones_like(level),              # R 分量固定为 1（红/橙基调）
-            0.9 * (1 - level) + 0.1,             # G 分量：从 1 到 0.1（黄到深橙）
-            0.6 * (1 - level) + 0.2              # B 分量：从 0.8 到 0.2（米黄到红）
+            torch.ones_like(level),              # R: fixed at 1 (red/orange base)
+            0.9 * (1 - level) + 0.1,             # G: 1 -> 0.1 (yellow to dark orange)
+            0.6 * (1 - level) + 0.2              # B: 0.8 -> 0.2 (beige to red)
         ], dim=1).numpy()
 
         result = mi.Color3f(colors)
@@ -220,6 +194,3 @@ class LevelIntegrator(mi.SamplingIntegrator):
         result[~valid] = mi.Color3f(0.0)
 
         return result, valid, []
-
-
-mi.register_integrator("lhs", lambda props: LevelIntegrator(props))

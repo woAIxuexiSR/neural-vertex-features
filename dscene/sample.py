@@ -63,22 +63,22 @@ def sample_si(
     return shape_idx, sample_pdf, si
 
 
-# p : (N, 3), v : (N, 3, 3)
-def barycentric_coords(p, v):
-    
-    rel = p - v[:, 0, :]
-    du = v[:, 1, :] - v[:, 0, :]
-    dv = v[:, 2, :] - v[:, 0, :]
-    
+# p : (N, 3), vertices : (N, 3, 3)
+def barycentric_coords(p, vertices):
+
+    rel = p - vertices[:, 0, :]
+    du = vertices[:, 1, :] - vertices[:, 0, :]
+    dv = vertices[:, 2, :] - vertices[:, 0, :]
+
     b1 = torch.sum(du * rel, axis=1)
     b2 = torch.sum(dv * rel, axis=1)
     a11 = torch.sum(du * du, axis=1)
     a12 = torch.sum(du * dv, axis=1)
     a22 = torch.sum(dv * dv, axis=1)
     inv_det = 1 / (a11 * a22 - a12 * a12)
-    
+
     u = (a22 * b1 - a12 * b2) * inv_det
     v = (a11 * b2 - a12 * b1) * inv_det
     w = 1 - u - v
-    
+
     return u, v, w

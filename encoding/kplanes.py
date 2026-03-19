@@ -31,7 +31,7 @@ class KPlanes(nn.Module):
         self.output_dim = num_levels * level_dim * 3
         self.max_params = 2 ** log2_hashmap_size
 
-        self.model = [
+        self.model = nn.ModuleList([
             HashGrid(
                 input_dim=2,
                 num_levels=num_levels,
@@ -39,8 +39,8 @@ class KPlanes(nn.Module):
                 per_level_scale=per_level_scale,
                 base_resolution=base_resolution,
                 log2_hashmap_size=log2_hashmap_size
-            ).cuda() for _ in range(3)
-        ]
+            ) for _ in range(3)
+        ])
 
     def forward(self, inputs):
         '''

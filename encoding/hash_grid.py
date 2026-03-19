@@ -51,7 +51,7 @@ class HashGrid(nn.Module):
         n_neigs = 1 << input_dim
         neigs = np.arange(n_neigs, dtype=np.int64).reshape((-1, 1))
         dims = np.arange(input_dim, dtype=np.int64).reshape((1, -1))
-        bin_mask = torch.tensor(neigs & (1 << dims) == 0, dtype=bool)
+        bin_mask = torch.tensor((neigs & (1 << dims)) == 0, dtype=bool)
         self.register_buffer('bin_mask', bin_mask)
 
         primes = torch.tensor(
@@ -218,8 +218,6 @@ class PyramidGrid(nn.Module):
 
             xi = x.long()
             xf = x - xi.float().detach()
-            # xi = xi.unsqueeze(dim=-2)
-            # xf = xf.unsqueeze(dim=-2)
 
             # TODO: Compute adaptive bin mask
             sorted_xf, inds = torch.sort(xf, dim=-1)
@@ -227,23 +225,15 @@ class PyramidGrid(nn.Module):
 
             bin_mask = self.sorted_bin_mask[:, inv_inds].transpose(0, 1).to(x.device)
             neigs = xi[:, None, :] + bin_mask
-            # print("neigs", neigs.shape)
-            # print("bin_mask", bin_mask.shape)
-            # print("sorted_bin_mask", self.sorted_bin_mask.shape)
-            # print("inv_inds", inv_inds.shape)
-            # neigs = torch.where(bin_mask, xi, xi + 1)
+
             offset = 0 if i == 0 else self.offsets[i - 1]
             params_in_level = self.offsets[i] - offset
             hash_ids = self.fast_hash(neigs, params_in_level) + offset
             neigs_features = self.embeddings[hash_ids]
 
-            # weights = torch.where(bin_mask, 1 - xf, xf)
             xf_lower = torch.cat([torch.zeros_like(sorted_xf[..., :1], dtype=sorted_xf.dtype), sorted_xf], dim=-1)
             xf_upper = torch.cat([sorted_xf, torch.ones_like(sorted_xf[..., -1:], dtype=sorted_xf.dtype)], dim=-1)
             weights = (xf_upper - xf_lower).unsqueeze(dim=-1)
-            # print("weights", weights.shape)
-            # print("neigs_features", neigs_features.shape)
-            # exit()
 
             output.append(torch.sum(neigs_features * weights, dim=-2))
 

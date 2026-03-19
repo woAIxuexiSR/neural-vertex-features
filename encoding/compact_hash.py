@@ -62,7 +62,7 @@ class CompactHash(nn.Module):
         n_neigs = 1 << input_dim
         neigs = np.arange(n_neigs, dtype=np.int64).reshape((-1, 1))
         dims = np.arange(input_dim, dtype=np.int64).reshape((1, -1))
-        bin_mask = torch.tensor(neigs & (1 << dims) == 0, dtype=bool)
+        bin_mask = torch.tensor((neigs & (1 << dims)) == 0, dtype=bool)
         self.register_buffer('bin_mask', bin_mask)
 
         primes = torch.tensor(
@@ -131,16 +131,3 @@ class CompactHash(nn.Module):
             output.append(torch.sum(neigs_features * w, dim=-2))
 
         return torch.cat(output, dim=-1)
-    
-if __name__ == '__main__':
-    model = CompactHash(
-                input_dim=3,
-                num_levels=8,
-                level_dim=8,
-                per_level_scale=2,
-                base_resolution=2,
-                log2_hashmap_size=8,
-                log2_index_code_book_size=12,
-                log2_index_probing_range=4
-            )
-    torch.save(model.state_dict(), 'compact_hash.pth')
