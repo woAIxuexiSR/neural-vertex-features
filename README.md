@@ -1,6 +1,6 @@
 # Neural Vertex Features
 
-Code release for "Vertex Features for Neural Global Illumination".
+Code release for "Vertex Features for Neural Global Illumination" (SIGGRAPH Asia 2025).
 
 ## Requirements
 
