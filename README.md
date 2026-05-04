@@ -1,4 +1,4 @@
-# neural-vertex-features
+# Neural Vertex Features
 
 Code release for "Vertex Features for Neural Global Illumination".
 
