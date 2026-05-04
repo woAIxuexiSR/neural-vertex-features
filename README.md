@@ -17,7 +17,7 @@ Code release for "Vertex Features for Neural Global Illumination".
 
 ## Compiling Mitsuba 3 from Source
 
-This project uses a [modified fork](mitsuba) of Mitsuba 3 (included as a submodule) that exposes barycentric coordinates from ray intersections. It also requires the `cuda_rgb` variant, which is not available in pre-built binaries. You need to compile it from source.
+This project uses a [modified fork](https://github.com/woAIxuexiSR/mitsuba3) of Mitsuba 3 (included as a submodule) that exposes barycentric coordinates from ray intersections. It also requires the `cuda_rgb` variant, which is not available in pre-built binaries. You need to compile it from source.
 
 Refer to the [official documentation](https://mitsuba.readthedocs.io/en/stable/src/developer_guide/compiling.html) for building on different platforms. On Windows:
 
