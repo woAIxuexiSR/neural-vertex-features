@@ -216,7 +216,7 @@ def train(dscene, model, config, out_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Neural Radiosity")
-    parser.add_argument("-c", type=str, default="config.json")
+    parser.add_argument("-c", type=str, required=True)
     parser.add_argument("-m", type=str, default="")
 
     args = parser.parse_args()

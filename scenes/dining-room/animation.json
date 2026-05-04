@@ -1,0 +1,55 @@
+{
+    "common": [
+        {
+            "param_name": "WallsBSDF.reflectance.value",
+            "start": [0.2, 0.2, 0.2],
+            "end": [0.5, 0.05, 0.3]
+        }
+    ],
+    "translate": [
+        {
+            "shape_names": ["Ceramic_0005", "Ceramic_0006"],
+            "start": [0, 0, -0.4],
+            "end": [0, 0, 0.2]
+        },
+        {
+            "shape_names": ["Ceramic_0005", "Ceramic_0006"],
+            "start": [-0.6, 0, 0],
+            "end": [0.6, 0, 0]
+        },
+        {
+            "shape_names": ["Artwork"],
+            "start": [0, -0.4, 0],
+            "end": [0, 0.4, 0]
+        },
+        {
+            "shape_names": ["FrostedGlass_0001", "WhitePlastic_0001", "WhitePlastic_0002"],
+            "start": [0, -0.4, 0],
+            "end": [0, 0.4, 0]
+        },
+        {
+            "shape_names": ["FrostedGlass_0002", "WhitePlastic_0003", "WhitePlastic_0004"],
+            "start": [0, -0.4, 0],
+            "end": [0, 0.4, 0]
+        }
+    ],
+    "scale": [
+
+    ],
+    "rotate": [
+        {
+            "shape_names": [ "EnvironmentMapEmitter" ],
+            "axis": [ 0, 1, 0 ],
+            "translation": [ 0, 0, 0 ],
+            "start": 90,
+            "end": 120
+        }
+    ],
+    "camera": {
+        "active": false,
+        "pos_start": [4, 4, 9],
+        "pos_end": [4, 4, 9],
+        "rot_start": [-0.0321, 0.9810, -0.0463, -0.1856 ],
+        "rot_end": [-0.0321, 0.9810, -0.0463, -0.1857 ]
+    }
+}

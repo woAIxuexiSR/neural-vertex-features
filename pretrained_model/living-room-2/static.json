@@ -1,0 +1,21 @@
+{
+    "scene": "scenes/living-room-2/scene.xml",
+    "output": "living-room-2",
+    "train": {
+        "use_subdivide": true,
+        "use_adaptive_rhs": true,
+        "loss": "weighted_normed_semi_l2",
+        "rhs_samples": 32,
+        "batch_size": 16384,
+        "steps": 40000,
+        "learning_rate": 0.005,
+        "save_interval": 10000,
+        "model_name": "static.pth"
+    },
+    "model": {
+        "type": "VModel",
+        "feature_dim": 4,
+        "n_hidden_layers": 4,
+        "n_neurons": 256
+    }
+}

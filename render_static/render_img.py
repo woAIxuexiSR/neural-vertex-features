@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Static Neural Radiosity")
     parser.add_argument("-t", type=str, default="path")
     parser.add_argument("-s", type=int, default=1)
-    parser.add_argument("-c", type=str, default="config.json")
+    parser.add_argument("-c", type=str, required=True)
     parser.add_argument("-m", type=str, default="")
     parser.add_argument("-o", type=str, default="hello.exr")
 

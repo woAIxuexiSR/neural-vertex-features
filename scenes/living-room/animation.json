@@ -1,0 +1,44 @@
+{
+    "common": [
+        {
+            "param_name": "lamp_emitter.radiance.value",
+            "start": [0, 0, 0],
+            "end": [500, 500, 500]
+        }
+    ],
+    "translate": [
+        {
+            "shape_names": ["blind1", "blind2", "blind3", "blind4"],
+            "start": [0, 0.3, 0],
+            "end": [0, 1.9, 0]
+        },
+        {
+            "shape_names": ["TableWood_0003", "TableWood_0004", "TableWood_0005"],
+            "start": [-0.6, 0, 0],
+            "end": [0.6, 0, 0]
+        },
+        {
+            "shape_names": ["TableWood_0003", "TableWood_0004", "TableWood_0005"],
+            "start": [0, 0, -0.2],
+            "end": [0, 0, 0.2]
+        },
+        {
+            "shape_names": ["lamp", "bulb"],
+            "start": [0, -0.5, 0],
+            "end": [0, 0, 0]
+        }
+    ],
+    "scale": [
+
+    ],
+    "rotate": [
+        
+    ],
+    "camera": {
+        "active": false,
+        "pos_start": [3.878, 1.4, -2.428],
+        "pos_end": [3.878, 1.4, -2.428],
+        "rot_start": [0.1169, -0.4428, 0.0584, 0.8870],
+        "rot_end": [0.1169, -0.4428, 0.0584, 0.8871]
+    }
+}

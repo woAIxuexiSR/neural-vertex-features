@@ -2,7 +2,6 @@
 
 TODO
 
-- [ ] Add pretrained models
 - [ ] Remove auxiliary code
 - [ ] Add config file documentation
 
@@ -51,18 +50,20 @@ source mitsuba/build/setpath.sh
 
 ## Usage
 
+Scene assets are stored under `scenes/<scene-name>/`. Pretrained weights and config files are stored under `pretrained_model/<scene-name>/`.
+
 ### Static Scenes
 
 **Train:**
 
 ```bash
-python render_static/train.py [-c config.json] [-m pretrained_model.pth]
+python render_static/train.py -c pretrained_model/living-room/static.json -m pretrained_model/living-room/static.pth
 ```
 
 **Render:**
 
 ```bash
-python render_static/render_img.py [-t type] [-s spp] [-c config.json] [-m model.pth] [-o output.exr]
+python render_static/render_img.py [-t type] [-s spp] [-c pretrained_model/living-room/static.json] [-m pretrained_model/living-room/static.pth] [-o output.exr]
 ```
 
 - `-t`: rendering method — `LHS`, `RHS`, `path`, or `level`
@@ -74,13 +75,13 @@ python render_static/render_img.py [-t type] [-s spp] [-c config.json] [-m model
 **Train:**
 
 ```bash
-python render_dynamic/train.py [-c config.json] [-m pretrained_model.pth]
+python render_dynamic/train.py -c pretrained_model/dining-room/dynamic.json -m pretrained_model/dining-room/dynamic.pth
 ```
 
 **Render:**
 
 ```bash
-python render_dynamic/render_img.py [-t type] [-s spp] [-c config.json] [-m model.pth] [-o output.exr]
+python render_dynamic/render_img.py [-t type] [-s spp] [-c pretrained_model/dining-room/dynamic.json] [-m pretrained_model/dining-room/dynamic.pth] [-o output.exr]
 ```
 
 - `-t`: rendering method — `LHS`, `RHS`, or `path`
@@ -129,5 +130,5 @@ python utils/metrics.py <image.exr> <reference.exr> <metric>
 | ... | Additional encoding-specific parameters (e.g., `n_levels`, `base_resolution`, `per_level_scale`, `log2_hashmap_size` for hash grid models) |
 
 Example configs:
-- Static: [scenes/dining-room/static.json](scenes/dining-room/static.json)
-- Dynamic: [scenes/dining-room/dynamic.json](scenes/dining-room/dynamic.json)
+- Static: [pretrained_model/living-room/static.json](pretrained_model/living-room/static.json)
+- Dynamic: [pretrained_model/dining-room/dynamic.json](pretrained_model/dining-room/dynamic.json)
