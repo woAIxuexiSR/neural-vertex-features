@@ -26,7 +26,7 @@ def render_img(scene, model, path):
     img: mi.TensorXf = dr.zeros(mi.TensorXf, (size[1], size[0], 3))
     
     for i in range(16):
-        img += mi.render(dscene.scene, integrator=integrator, spp=1, seed=i + 2)
+        img += mi.render(scene, integrator=integrator, spp=1, seed=i + 2)
         dr.flush_malloc_cache()
     img = img / 16
 
@@ -40,7 +40,7 @@ def render_error(scene, model, path, error):
     img: mi.TensorXf = dr.zeros(mi.TensorXf, (size[1], size[0], 3))
     
     for i in range(16):
-        img += mi.render(dscene.scene, integrator=integrator, spp=1, seed=i + 2)
+        img += mi.render(scene, integrator=integrator, spp=1, seed=i + 2)
         dr.flush_malloc_cache()
     img = img / 16
 
@@ -54,7 +54,7 @@ def render_level(scene, model, path, level):
     img: mi.TensorXf = dr.zeros(mi.TensorXf, (size[1], size[0], 3))
     
     for i in range(16):
-        img += mi.render(dscene.scene, integrator=integrator, spp=1, seed=i + 2)
+        img += mi.render(scene, integrator=integrator, spp=1, seed=i + 2)
         dr.flush_malloc_cache()
     img = img / 16
 

@@ -24,7 +24,7 @@ def render_img(dscene, model, path, v):
     dscene.update(v)
     integrator = LHSIntegrator(model)
     integrator.v = v
-    size = scene.sensors()[0].film().size()
+    size = dscene.scene.sensors()[0].film().size()
     img: mi.TensorXf = dr.zeros(mi.TensorXf, (size[1], size[0], 3))
     
     for i in range(16):

@@ -33,7 +33,7 @@ if __name__ == "__main__":
     integrator = mi.load_dict({"type": "path", "max_depth": 16})
     if args.t == "path":
         pass
-    elif args.t == "LHS" or args.t == "RHS" or args.t == "level" or args.t == "error":
+    elif args.t == "LHS" or args.t == "RHS" or args.t == "level":
         
         # prepare model
         
@@ -46,6 +46,8 @@ if __name__ == "__main__":
         elif args.t == "level":
             integrator = LevelIntegrator(model, model.spatial_encoding.subdivide_level)
             
+    elif args.t == "error":
+        raise NotImplementedError("error visualization is not exposed by this entrypoint")
     else:
         raise NotImplementedError
     

@@ -4,20 +4,10 @@ import torch
 import torch.nn as nn
 import tinycudann as tcnn
 import numpy as np
-import time
-
 from encoding.hash_grid import HashGrid
 from encoding.vertex_feature import VertexFeature
 
 mi.set_variant("cuda_rgb")
-import time
-from tqdm import trange
-def sync():
-    torch.cuda.synchronize()
-    dr.sync_device()
-    torch.cuda.synchronize()
-    dr.sync_device()
-    return time.time()
 grid_config = {
     "otype": "HashGrid",
     "n_dims_to_encode": 3,
@@ -156,139 +146,25 @@ class DModel(nn.Module):
 
             wi = (nn.functional.normalize(wi, dim=1) + 1) * 0.5
             n = (nn.functional.normalize(n, dim=1) + 1) * 0.5
-        trange = range
-        warm_iter = 32
-        test_iter = 1
-        print("fx")
-        print("Warm up")
-        for _ in trange(warm_iter):
-            e = self.spatial_encoding(si)
-            pass
-        print("Test")
-        a = sync()
-        for _ in trange(test_iter):
-            e = self.spatial_encoding(si)
-            pass
-        b = sync()
-        c = (b - a) / test_iter
-        print("Average Time: {}".format(c))
 
-        print("fxv")
-        print("Warm up")
-        for _ in trange(warm_iter):
-            var_num = self.var_num
-            x = torch.zeros((pos.shape[0], 3 * var_num * 2), device="cuda")
-            for i in range(var_num):
-                x[:, i * 6] = pos[:, 0]
-                x[:, i * 6 + 1] = vars[i]
-                x[:, i * 6 + 2] = pos[:, 1]
-                x[:, i * 6 + 3] = vars[i]
-                x[:, i * 6 + 4] = pos[:, 2]
-                x[:, i * 6 + 5] = vars[i]
-            x = torch.cat([x, wi, n, f_d], dim=1).to(torch.float32)
-            y = self.encoding(x)
-            pass
-        print("Test")
-        a = sync()
-        for _ in trange(test_iter):
-            var_num = self.var_num
-            x = torch.zeros((pos.shape[0], 3 * var_num * 2), device="cuda")
-            for i in range(var_num):
-                x[:, i * 6] = pos[:, 0]
-                x[:, i * 6 + 1] = vars[i]
-                x[:, i * 6 + 2] = pos[:, 1]
-                x[:, i * 6 + 3] = vars[i]
-                x[:, i * 6 + 4] = pos[:, 2]
-                x[:, i * 6 + 5] = vars[i]
-            x = torch.cat([x, wi, n, f_d], dim=1).to(torch.float32)
-            y = self.encoding(x)
-            pass
-        b = sync()
-        c = (b - a) / test_iter
-        print("Average Time: {}".format(c))
+        e = self.spatial_encoding(si)
 
-        print("fvv")
-        print("Warm up")
-        for _ in trange(warm_iter):
-                    v = torch.zeros((pos.shape[0], var_num), device="cuda")
+        var_num = self.var_num
+        x = torch.zeros((pos.shape[0], 3 * var_num * 2), device="cuda")
+        for i in range(var_num):
+            x[:, i * 6] = pos[:, 0]
+            x[:, i * 6 + 1] = vars[i]
+            x[:, i * 6 + 2] = pos[:, 1]
+            x[:, i * 6 + 3] = vars[i]
+            x[:, i * 6 + 4] = pos[:, 2]
+            x[:, i * 6 + 5] = vars[i]
+        x = torch.cat([x, wi, n, f_d], dim=1).to(torch.float32)
+        y = self.encoding(x)
+
+        v = torch.zeros((pos.shape[0], var_num), device="cuda")
         for i in range(var_num):
             v[:, i] = vars[i]
-            v2 = self.vvmlp(v)
-            pass
-        print("Test")
-        a = sync()
-        for _ in trange(test_iter):
-            v2 = self.vvmlp(v)
-            pass
-        b = sync()
-        c = (b - a) / test_iter
-        print("Average Time: {}".format(c))
+        v2 = self.vvmlp(v)
 
-        print("mlp")
-        print("Warm up")
-        for _ in trange(warm_iter):
-            y2 = self.mlp(torch.cat([e, y, v2], dim=1)).to(torch.float32).abs()
-            pass
-        print("Test")
-        a = sync()
-        for _ in trange(test_iter):
-            y2 = self.mlp(torch.cat([e, y, v2], dim=1)).to(torch.float32).abs()
-            pass
-        b = sync()
-        c = (b - a) / test_iter
-        print("Average Time: {}".format(c))
-
-        print("Total")
-        print("Warm up")
-        for _ in trange(warm_iter):
-            e = self.spatial_encoding(si)
-
-            var_num = self.var_num
-            x = torch.zeros((pos.shape[0], 3 * var_num * 2), device="cuda")
-            for i in range(var_num):
-                x[:, i * 6] = pos[:, 0]
-                x[:, i * 6 + 1] = vars[i]
-                x[:, i * 6 + 2] = pos[:, 1]
-                x[:, i * 6 + 3] = vars[i]
-                x[:, i * 6 + 4] = pos[:, 2]
-                x[:, i * 6 + 5] = vars[i]
-            x = torch.cat([x, wi, n, f_d], dim=1).to(torch.float32)
-            
-            y = self.encoding(x)
-
-            v = torch.zeros((pos.shape[0], var_num), device="cuda")
-            for i in range(var_num):
-                v[:, i] = vars[i]
-            v2 = self.vvmlp(v)
-
-            y2 = self.mlp(torch.cat([e, y, v2], dim=1)).to(torch.float32).abs()
-        
-        print("Test")
-        a = sync()
-        for _ in trange(test_iter):
-            e = self.spatial_encoding(si)
-
-            var_num = self.var_num
-            x = torch.zeros((pos.shape[0], 3 * var_num * 2), device="cuda")
-            for i in range(var_num):
-                x[:, i * 6] = pos[:, 0]
-                x[:, i * 6 + 1] = vars[i]
-                x[:, i * 6 + 2] = pos[:, 1]
-                x[:, i * 6 + 3] = vars[i]
-                x[:, i * 6 + 4] = pos[:, 2]
-                x[:, i * 6 + 5] = vars[i]
-            x = torch.cat([x, wi, n, f_d], dim=1).to(torch.float32)
-            
-            y = self.encoding(x)
-
-            v = torch.zeros((pos.shape[0], var_num), device="cuda")
-            for i in range(var_num):
-                v[:, i] = vars[i]
-            v2 = self.vvmlp(v)
-
-            y2 = self.mlp(torch.cat([e, y, v2], dim=1)).to(torch.float32).abs()
-        b = sync()
-        c = (b - a) / test_iter
-        print("Average Time: {}".format(c))
-
+        y2 = self.mlp(torch.cat([e, y, v2], dim=1)).to(torch.float32).abs()
         return y2 * f_d

@@ -1,132 +1,101 @@
+import argparse
+import json
+
+import drjit as dr
+import imgui
 import mitsuba as mi
 import numpy as np
-from simple_integrators.ambient import *
-from simple_integrators.uv import *
+import torch
 
-mi.set_variant('cuda_rgb')
+from dscene.dscene import DynamicScene
+from integrators.integrator import LHSIntegrator, LevelIntegrator, RHSIntegrator
+from model.helper import get_model
+from utils.ui import UI
 
-# vertex_positions: np.ndarray [n, 3]
-# faces: np.ndarray [m, 3]
-# vertex_normals: np.ndarray [n, 3] or [0, 3]
-# vertex_texcoords: np.ndarray [n, 2]
-# subdivide each face to 4 triangles
-def subdivide(vertex_positions, faces, vertex_normals, vertex_texcoords):
-    num_vertices = vertex_positions.shape[0]
-    new_vertex_positions = []
-    new_faces = []
-    new_vertex_normals = []
-    new_vertex_texcoords = []
-    for face in faces:
-        v0, v1, v2 = face
+mi.set_variant("cuda_rgb")
 
-        p0 = vertex_positions[v0]
-        p1 = vertex_positions[v1]
-        p2 = vertex_positions[v2]
-        
-        if vertex_normals.shape[0] > 0:
-            n0 = vertex_normals[v0]
-            n1 = vertex_normals[v1]
-            n2 = vertex_normals[v2]
-        
-        uv0 = vertex_texcoords[v0]
-        uv1 = vertex_texcoords[v1]
-        uv2 = vertex_texcoords[v2]
 
-        # Calculate midpoints
-        p01 = (p0 + p1) / 2
-        p12 = (p1 + p2) / 2
-        p20 = (p2 + p0) / 2
-        
-        if vertex_normals.shape[0] > 0:
-            n01 = (n0 + n1) / 2
-            n12 = (n1 + n2) / 2
-            n20 = (n2 + n0) / 2
-
-        uv01 = (uv0 + uv1) / 2
-        uv12 = (uv1 + uv2) / 2
-        uv20 = (uv2 + uv0) / 2
-
-        # Add new vertices
-        new_vertex_positions.extend([p01, p12, p20])
-        if vertex_normals.shape[0] > 0:
-            new_vertex_normals.extend([n01, n12, n20])
-        new_vertex_texcoords.extend([uv01, uv12, uv20])
-
-        p01_idx = num_vertices + len(new_vertex_positions) - 3
-        p12_idx = num_vertices + len(new_vertex_positions) - 2
-        p20_idx = num_vertices + len(new_vertex_positions) - 1
-
-        new_faces.extend([
-            [v0, p01_idx, p20_idx],
-            [v1, p12_idx, p01_idx],
-            [v2, p20_idx, p12_idx],
-            [p01_idx, p12_idx, p20_idx]
-        ])
-    
-    new_vertex_positions = np.concatenate([vertex_positions, np.array(new_vertex_positions)])
-    if vertex_normals.shape[0] > 0:
-        new_vertex_normals = np.concatenate([vertex_normals, np.array(new_vertex_normals)])
-    else:
-        new_vertex_normals = np.zeros((0, 3))
-    new_vertex_texcoords = np.concatenate([vertex_texcoords, np.array(new_vertex_texcoords)])
-    new_faces = np.array(new_faces)
-
-    # print(new_vertex_positions.shape, new_faces.shape, new_vertex_normals.shape, new_vertex_texcoords.shape)
-    # print(vertex_positions.shape, faces.shape, vertex_normals.shape, vertex_texcoords.shape)
-    return new_vertex_positions, new_faces, new_vertex_normals, new_vertex_texcoords
+def build_model(config: dict, model_path: str, dscene: DynamicScene):
+    if model_path == "":
+        return None
+    return get_model(config["model"]["type"], model_path, dscene, config["model"])
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Interactive viewer")
+    parser.add_argument("-c", type=str, required=True)
+    parser.add_argument("-m", type=str, default="")
 
-    scene = mi.load_file("./static_scenes/veach-ajar/scene.xml")
-    params = mi.traverse(scene)
+    args = parser.parse_args()
+    config = json.load(open(args.c, "r"))
 
-    integrator = mi.load_dict({"type": "uv"})
-    path = mi.load_dict({"type": "path", "max_depth": 16})
-    img = mi.render(scene, integrator=integrator, spp=1024)
-    img = mi.Bitmap(img)
-    img.write("original.exr")
-    img = mi.render(scene, integrator=path, spp=1024)
-    img = mi.Bitmap(img)
-    img.write("original_path.exr")
+    scene: mi.Scene = mi.load_file(config["scene"])
+    dscene = DynamicScene(scene)
 
-    floor_v = np.array(params["Floor.vertex_positions"]).reshape(-1, 3)
-    print(floor_v.shape)
+    if "animation" in config:
+        dscene.load_animation(config["animation"])
 
-    for shape in scene.shapes():
+    initial_v = config.get("v")
+    if initial_v is not None and initial_v != "":
+        dscene.update(np.array(initial_v, dtype=np.float32))
+    else:
+        dscene.update(np.ones(dscene.var_num, dtype=np.float32) * 0.5)
 
-        if shape.id() != "Floor":
-            continue
-        if shape.id() + ".vertex_positions" not in params:
-            continue
+    if dscene.active_moving_camera:
+        cam_v = config.get("cam_v")
+        if cam_v is not None and cam_v != "":
+            dscene.camera_v = cam_v
+            dscene.update(dscene.v, changed=False)
 
-        vertex_positions = np.array(params[shape.id() + ".vertex_positions"]).reshape(-1, 3)
-        faces = np.array(params[shape.id() + ".faces"]).reshape(-1, 3)
-        vertex_normals = np.array(params[shape.id() + ".vertex_normals"]).reshape(-1, 3)
-        vertex_texcoords = np.array(params[shape.id() + ".vertex_texcoords"]).reshape(-1, 2)
+    sensor: mi.Sensor = dscene.scene.sensors()[0]
+    width, height = sensor.film().size()
+    ui = UI(width, height, dscene.camera)
 
-        new_vertex_positions, new_faces, new_vertex_normals, new_vertex_texcoords = subdivide(
-            vertex_positions, faces, vertex_normals, vertex_texcoords
-        )
+    model = build_model(config, args.m, dscene)
+    path_integrator = mi.load_dict({"type": "path", "max_depth": 16})
+    lhs_integrator = LHSIntegrator(model) if model is not None else None
+    rhs_integrator = RHSIntegrator(model) if model is not None else None
+    level_integrator = LevelIntegrator(model, model.spatial_encoding.subdivide_level) if model is not None else None
 
-        params[shape.id() + '.vertex_positions'] = mi.Float(new_vertex_positions.flatten())
-        params[shape.id() + '.faces'] = mi.Int(new_faces.flatten())
-        params[shape.id() + '.vertex_normals'] = mi.Float(new_vertex_normals.flatten())
-        params[shape.id() + '.vertex_texcoords'] = mi.Float(new_vertex_texcoords.flatten())
+    integrator_names = ["Path"]
+    if model is not None:
+        integrator_names.extend(["LHS", "RHS", "Level"])
 
-        # shape = scene.shapes()[8]
-        # shape.write_ply("modified_shape.ply")
+    integrator_index = 0
+    spp = 1
+    exposure = 1.0
 
-        # print("Shape saved to 'modified_shape.ply'")
+    while not ui.should_close():
+        ui.begin_frame()
+        dscene.render_ui()
 
-    params.update()
+        if lhs_integrator is not None:
+            lhs_integrator.v = dscene.v if dscene.var_num > 0 else None
+        if rhs_integrator is not None:
+            rhs_integrator.v = dscene.v if dscene.var_num > 0 else None
 
-    floor_v = np.array(params["Floor.vertex_positions"]).reshape(-1, 3)
-    print(floor_v.shape)
+        if imgui.tree_node("Render Options", imgui.TREE_NODE_DEFAULT_OPEN):
+            _, integrator_index = imgui.combo("Integrator", integrator_index, integrator_names)
+            _, spp = imgui.slider_int("SPP", spp, 1, 4)
+            _, exposure = imgui.slider_float("Exposure", exposure, 0.1, 5.0)
+            imgui.tree_pop()
 
-    img = mi.render(scene, integrator=integrator, spp=1024)
-    img = mi.Bitmap(img)
-    img.write("modified.exr")
-    img = mi.render(scene, integrator=path, spp=1024)
-    img = mi.Bitmap(img)
-    img.write("modified_path.exr")
+        selected_name = integrator_names[integrator_index]
+        if selected_name == "Path":
+            integrator = path_integrator
+        elif selected_name == "LHS":
+            integrator = lhs_integrator
+        elif selected_name == "RHS":
+            integrator = rhs_integrator
+        else:
+            integrator = level_integrator
+
+        seed = int(ui.duration * 1000)
+        img = mi.render(dscene.scene, integrator=integrator, spp=spp, seed=seed).torch()
+        img = torch.log1p(exposure * img)
+        img = img ** (1 / 2.2)
+
+        ui.write_texture_gpu(img)
+        ui.end_frame()
+
+    ui.close()

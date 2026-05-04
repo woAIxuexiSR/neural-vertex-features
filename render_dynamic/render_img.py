@@ -4,9 +4,6 @@ import numpy as np
 import json
 import argparse
 
-import time
-import torch
-
 from dscene.dscene import DynamicScene
 from integrators.integrator import *
 from model.helper import *
@@ -35,13 +32,15 @@ if __name__ == "__main__":
     # rendering
 
     v = np.random.uniform(0, 1, dscene.var_num)
-    if config["v"] != "":
-        v = np.array(config["v"])
+    v_config = config.get("v")
+    if v_config is not None and v_config != "":
+        v = np.array(v_config, dtype=np.float32)
     
     if dscene.active_moving_camera:
         cam_v = np.random.uniform(0, 1)
-        if config["cam_v"] != "":
-            cam_v = config["cam_v"]
+        cam_v_config = config.get("cam_v")
+        if cam_v_config is not None and cam_v_config != "":
+            cam_v = cam_v_config
         dscene.camera_v = cam_v
 
     integrator = mi.load_dict({"type": "path", "max_depth": 16})

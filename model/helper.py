@@ -1,6 +1,6 @@
 from model.loss import *
-from model.static_model import StaticModel
-from model.dynamic_model import DynamicModel
+import torch
+
 from model.vmodel import VModel
 from model.dmodel import DModel
 
@@ -35,14 +35,12 @@ def get_loss_fn(name):
     
 def get_model(name, path, *args):
 
-    if name == "StaticModel":
-        model = StaticModel(*args)
-    elif name == "DynamicModel":
-        model = DynamicModel(*args)
-    elif name == "VModel":
+    if name == "VModel":
         model = VModel(*args)
     elif name == "DModel":
         model = DModel(*args)
+    else:
+        raise ValueError(f"Unknown model type: {name}")
 
     model = model.cuda()
     if name == "VModel":

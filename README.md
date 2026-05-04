@@ -1,10 +1,5 @@
 # neural-vertex-features
 
-TODO
-
-- [ ] Remove auxiliary code
-- [ ] Add config file documentation
-
 Code release for "Vertex Features for Neural Global Illumination".
 
 ## Requirements
@@ -66,7 +61,7 @@ python render_static/train.py -c pretrained_model/living-room/static.json -m pre
 python render_static/render_img.py [-t type] [-s spp] [-c pretrained_model/living-room/static.json] [-m pretrained_model/living-room/static.pth] [-o output.exr]
 ```
 
-- `-t`: rendering method — `LHS`, `RHS`, `path`, or `level`
+- `-t`: rendering method: `LHS`, `RHS`, `path`, or `level`
 - `-s`: samples per pixel
 - `-o`: output file path
 
@@ -84,7 +79,7 @@ python render_dynamic/train.py -c pretrained_model/dining-room/dynamic.json -m p
 python render_dynamic/render_img.py [-t type] [-s spp] [-c pretrained_model/dining-room/dynamic.json] [-m pretrained_model/dining-room/dynamic.pth] [-o output.exr]
 ```
 
-- `-t`: rendering method — `LHS`, `RHS`, or `path`
+- `-t`: rendering method: `LHS`, `RHS`, or `path`
 - `-s`: samples per pixel
 - `-o`: output file path
 
@@ -96,6 +91,12 @@ python utils/metrics.py <image.exr> <reference.exr> <metric>
 
 - `metric`: `MSE`, `relMSE`, `MAPE`, `MAE`, or `SMAPE`
 
+### Interactive Viewer
+
+```bash
+python test.py -c pretrained_model/dining-room/dynamic.json -m pretrained_model/dining-room/dynamic.pth
+```
+
 ## Config File
 
 | Field | Description |
@@ -104,6 +105,7 @@ python utils/metrics.py <image.exr> <reference.exr> <metric>
 | `output` | Output directory name (saved under `result/`) |
 | `animation` | Path to the animation file (`.json`, dynamic only) |
 | `v` | Animation variable values (dynamic only) |
+| `cam_v` | Camera animation value used by the dynamic render/viewer entrypoints |
 
 **Training parameters** (`train`):
 
@@ -127,7 +129,7 @@ python utils/metrics.py <image.exr> <reference.exr> <metric>
 | `feature_dim` | Per-vertex feature dimension |
 | `n_hidden_layers` | Number of hidden layers |
 | `n_neurons` | Neurons per hidden layer |
-| ... | Additional encoding-specific parameters (e.g., `n_levels`, `base_resolution`, `per_level_scale`, `log2_hashmap_size` for hash grid models) |
+| ... | Additional dynamic-model parameters such as `grid_type_2d`, `n_levels_2d`, `base_resolution_2d`, `per_level_scale_2d`, and `vvmlp_output_dims` |
 
 Example configs:
 - Static: [pretrained_model/living-room/static.json](pretrained_model/living-room/static.json)
